@@ -1,0 +1,21 @@
+{
+  "name": "com.dartcore.localization",
+  "version": "1.0.0",
+  "displayName": "DartCore Localization",
+  "description": "This package allows you to localize strings.",
+  "unity": "2018.1",
+  "unityRelease": "0b5",
+  "keywords": [
+    "localization"
+  ],
+  "author": {
+    "name": "Ata T\u00fcrko\u011flu",
+    "email": "ataturkoglu2003@hotmail.com",
+    "url": "https://github.com/AtaTrkgl/Unity-DartCore"
+  },
+  "type": "tool",
+  "dependencies": {
+    "com.unity.textmeshpro": "3.0.4",
+    "com.dartcore.utilities": "1.0.0"
+  }
+}

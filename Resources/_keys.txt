@@ -1,0 +1,2 @@
+lng_name
+lng_error
