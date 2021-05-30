@@ -1,2 +1,2 @@
 lng_name
-lng_error
+lng_error

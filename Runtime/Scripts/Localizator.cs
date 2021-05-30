@@ -15,7 +15,8 @@ namespace DartCore.Localization
 
         private static SystemLanguage currentLanguage = SystemLanguage.English;
 
-        private const string LNG_FILES_PATH = "Packages/com.dartcore.localization/Resources/";
+        private const string LNG_FILES_PATH = "Assets/Localization/Resources/";
+        private const string DEFAULT_LNG_FILES_PATH = "Packages/com.dartcore.localization/Resources/";
         private const string KEYS_FILE_NAME = "_keys";
         private const string LNG_NAMES_FILE = "_lng_names";
         private const string LINE_BREAK_TEXT = "<line_break>";
@@ -35,6 +36,30 @@ namespace DartCore.Localization
         {
             if (languageArrays == null) LoadLanguageFile();
             return languageArrays;
+        }
+
+        private static string GetLanguageFilesPath()
+        {
+            if (Directory.Exists(LNG_FILES_PATH)) return LNG_FILES_PATH;
+            else{
+                var defaultDir = Directory.CreateDirectory(DEFAULT_LNG_FILES_PATH);
+                if (!defaultDir.Exists)
+                {
+                    throw new DirectoryNotFoundException(
+                        "Default Localization Directory was not found.");
+                }
+
+                Directory.CreateDirectory(LNG_FILES_PATH);    
+
+                FileInfo[] files = defaultDir.GetFiles();
+                foreach (FileInfo file in files)
+                {
+                    string tempPath = Path.Combine(LNG_FILES_PATH, file.Name);
+                    file.CopyTo(tempPath, false);
+                }
+
+                return GetLanguageFilesPath();
+            }
         }
 
         /// <summary>
@@ -118,7 +143,7 @@ namespace DartCore.Localization
             key = key.Replace(' ', '_');
             if (!DoesContainKey(key))
             {
-                File.AppendAllText(LNG_FILES_PATH + KEYS_FILE_NAME + ".txt", "\n" + key);
+                File.AppendAllText(GetLanguageFilesPath() + KEYS_FILE_NAME + ".txt", "\n" + key);
 #if UNITY_EDITOR
                 UnityEditor.AssetDatabase.Refresh();
 #endif
@@ -152,7 +177,7 @@ namespace DartCore.Localization
                         newText = newText.Remove(newText.Length - 1);
                 }
 
-                File.WriteAllText(LNG_FILES_PATH + KEYS_FILE_NAME + ".txt", newText);
+                File.WriteAllText(GetLanguageFilesPath() + KEYS_FILE_NAME + ".txt", newText);
                 UpdateKeyFile();
                 
                 // VALUE REMOVAL
@@ -167,7 +192,7 @@ namespace DartCore.Localization
                     }
 
                     newText = newText.Remove(newText.Length - 1);
-                    File.WriteAllText(LNG_FILES_PATH + GetLanguageNames()[language] + ".txt", newText);
+                    File.WriteAllText(GetLanguageFilesPath() + GetLanguageNames()[language] + ".txt", newText);
                 }
             }
 #if UNITY_EDITOR
@@ -182,13 +207,12 @@ namespace DartCore.Localization
             if (GetString(key, language, true) != localizedValue)
             {
                 localizedValue = ConvertUsableStringToSavedString(localizedValue);
-                string value = File.ReadAllText(LNG_FILES_PATH + GetLanguageNames()[language] + ".txt");
+                var lines = ReadAllLines(GetLanguageNames()[language]);
 
                 var index = GetIndexOfKey(key);
                 string endString = "";
 
-                var splittedValue = value.Split('\n');
-                int iterCount = index > splittedValue.Length - 1 ? index + 1 : splittedValue.Length;
+                int iterCount = index > lines.Length - 1 ? index + 1 : lines.Length;
                 for (int i = 0; i < iterCount; i++)
                 {
                     if (i != 0)
@@ -196,11 +220,11 @@ namespace DartCore.Localization
 
                     if (index == i)
                         endString += localizedValue;
-                    else if (splittedValue.Length > i)
-                        endString += splittedValue[i];
+                    else if (lines.Length > i)
+                        endString += lines[i];
                 }
 
-                File.WriteAllText(LNG_FILES_PATH + GetLanguageNames()[language] + ".txt", endString);
+                File.WriteAllText(GetLanguageFilesPath() + GetLanguageNames()[language] + ".txt", endString);
 #if UNITY_EDITOR
                 UnityEditor.AssetDatabase.Refresh();
 #endif
@@ -292,10 +316,10 @@ namespace DartCore.Localization
                 // i starts from 2 as index 0 is lng_name and 1 is lng_error.
                 for (var i = 2; i < keysArray.Length; i++)
                     fileContent += "\n";
-                File.WriteAllText(LNG_FILES_PATH + fileName + ".txt", fileContent);
+                File.WriteAllText(GetLanguageFilesPath() + fileName + ".txt", fileContent);
                 
                 // Language Names File
-                var lines = File.ReadAllText(LNG_FILES_PATH + LNG_NAMES_FILE + ".txt").Split('\n');
+                var lines = ReadAllLines(LNG_NAMES_FILE);
                 var fileNameText = "";
                 for (var i = 0; i < lines.Length; i++)
                 {
@@ -303,7 +327,7 @@ namespace DartCore.Localization
                 }
 
                 fileNameText = fileNameText.Remove(fileNameText.Length - 1);
-                File.WriteAllText(LNG_FILES_PATH + LNG_NAMES_FILE + ".txt", fileNameText);
+                File.WriteAllText(GetLanguageFilesPath() + LNG_NAMES_FILE + ".txt", fileNameText);
 #if UNITY_EDITOR
                 UnityEditor.AssetDatabase.Refresh();
 #endif
@@ -319,7 +343,7 @@ namespace DartCore.Localization
                 return;
             }
 
-            var textFile = (TextAsset) AssetDatabase.LoadAssetAtPath(LNG_FILES_PATH + LNG_NAMES_FILE + ".txt", typeof(TextAsset));
+            var textFile = (TextAsset) AssetDatabase.LoadAssetAtPath(GetLanguageFilesPath() + LNG_NAMES_FILE + ".txt", typeof(TextAsset));
             var lines = textFile.text.Split('\n');
             
             lines[(int) language] = "";
@@ -328,9 +352,9 @@ namespace DartCore.Localization
                 text += line + "\n";
             
             text = text.Remove(text.Length - 1);
-            File.WriteAllText(LNG_FILES_PATH + LNG_NAMES_FILE + ".txt", text);
+            File.WriteAllText(GetLanguageFilesPath() + LNG_NAMES_FILE + ".txt", text);
 
-            File.Delete(LNG_FILES_PATH + GetLanguageNames()[language] + ".txt");
+            File.Delete(GetLanguageFilesPath() + GetLanguageNames()[language] + ".txt");
 
             GetLanguageNames().Remove(language);
         }
@@ -351,11 +375,7 @@ namespace DartCore.Localization
                 currentLanguage = languageNames.Keys.ElementAt(0);
         }
 
-        private static string[] ReadAllLines(string fileName)
-        {
-            var file = Resources.Load<TextAsset>(fileName);
-            return file.text.Split('\n');
-        }
+        private static string[] ReadAllLines(string fileName) => File.ReadAllText(GetLanguageFilesPath() + fileName + ".txt").Split('\n');
 
         public static SystemLanguage GetCurrentLanguage()
         {
@@ -380,7 +400,8 @@ namespace DartCore.Localization
             var dict = new Dictionary<SystemLanguage, float>();
             foreach (var language in GetAvailableLanguages())
             {
-                var lines = File.ReadAllText(LNG_FILES_PATH + languageNames[language] + ".txt").Split('\n');
+                
+                var lines = ReadAllLines(languageNames[language]);
                 var filledRowCount = 0;
 
                 foreach (var line in lines)
