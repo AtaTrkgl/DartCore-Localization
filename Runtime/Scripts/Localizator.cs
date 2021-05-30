@@ -16,7 +16,7 @@ namespace DartCore.Localization
         private static SystemLanguage currentLanguage = SystemLanguage.English;
 
         private const string LNG_FILES_PATH = "Assets/Localization/Resources/";
-        private const string DEFAULT_LNG_FILES_PATH = "Packages/com.dartcore.localization/Resources/";
+        private const string DEFAULT_LNG_FILES_PATH = "Packages/com.dartcore.localization/Default Localization Dir/";
         private const string KEYS_FILE_NAME = "_keys";
         private const string LNG_NAMES_FILE = "_lng_names";
         private const string LINE_BREAK_TEXT = "<line_break>";
@@ -343,8 +343,7 @@ namespace DartCore.Localization
                 return;
             }
 
-            var textFile = (TextAsset) AssetDatabase.LoadAssetAtPath(GetLanguageFilesPath() + LNG_NAMES_FILE + ".txt", typeof(TextAsset));
-            var lines = textFile.text.Split('\n');
+            var lines = ReadAllLines(LNG_NAMES_FILE);
             
             lines[(int) language] = "";
             var text = "";
@@ -375,7 +374,10 @@ namespace DartCore.Localization
                 currentLanguage = languageNames.Keys.ElementAt(0);
         }
 
-        private static string[] ReadAllLines(string fileName) => File.ReadAllText(GetLanguageFilesPath() + fileName + ".txt").Split('\n');
+        private static string[] ReadAllLines(string fileName)
+        {
+    		return File.ReadAllText(GetLanguageFilesPath() + fileName + ".txt").Split('\n');
+    	}
 
         public static SystemLanguage GetCurrentLanguage()
         {
