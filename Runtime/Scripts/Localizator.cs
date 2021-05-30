@@ -376,8 +376,11 @@ namespace DartCore.Localization
 
         private static string[] ReadAllLines(string fileName)
         {
-    		return File.ReadAllText(GetLanguageFilesPath() + fileName + ".txt").Split('\n');
-    	}
+            #if UNITY_EDITOR
+            return File.ReadAllText(GetLanguageFilesPath() + fileName + ".txt").Split('\n');
+            #endif
+            return Resources.Load<TextAsset>(fileName).text.Split('\n');
+        }
 
         public static SystemLanguage GetCurrentLanguage()
         {
