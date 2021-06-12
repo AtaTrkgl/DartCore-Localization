@@ -1,6 +1,6 @@
 {
   "name": "com.dartcore.localization",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "displayName": "DartCore Localization",
   "description": "This package allows you to localize strings.",
   "unity": "2018.1",
