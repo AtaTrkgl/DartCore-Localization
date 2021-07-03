@@ -109,11 +109,7 @@ namespace DartCore.Localization.Backend
                 {
                     if (canRename)
                     {
-                        Localizator.AddKey(newName.Trim());
-                        foreach (var language in Localizator.GetAvailableLanguages())
-                            Localizator.AddLocalizedValue(newName.Trim(), Localizator.GetString(key, language, returnErrorString: false), language);
-                        
-                        Localizator.RemoveKey(key);
+                        Localizator.RenameKey(key, newName.Trim());
 
                         key = newName.Trim();
                         newName = "";

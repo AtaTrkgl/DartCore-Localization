@@ -202,6 +202,27 @@ namespace DartCore.Localization
             LoadLanguageFile();
         }
 
+        public static void RenameKey(string oldName, string newName)
+        {
+            var keys = GetKeysArray();
+            var newText = "";
+            for (int i = 0; i < keys.Length; i++)
+            {
+                var key = keys[i];
+                newText += (key.Trim() == oldName.Trim() ? newName.Trim() : key.Trim()) +
+                           (i != keys.Length -1 ? "\n" : "");
+            }
+            
+            Debug.Log(newText);
+            File.WriteAllText(GetLanguageFilesPath() + KEYS_FILE_NAME + ".txt", newText);
+            
+#if UNITY_EDITOR
+            UnityEditor.AssetDatabase.Refresh();
+#endif
+            UpdateKeyFile();
+            LoadLanguageFile();
+        }
+
         public static void AddLocalizedValue(string key, string localizedValue, SystemLanguage language)
         {
             if (GetString(key, language, true) != localizedValue)
