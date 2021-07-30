@@ -144,13 +144,30 @@ namespace DartCore.Localization
             key = key.Replace(' ', '_');
             if (!DoesContainKey(key))
             {
-                File.AppendAllText(GetLanguageFilesPath() + KEYS_FILE_NAME + ".txt", "\n" + key);
+                var lines = ReadAllLines(KEYS_FILE_NAME, false);
+                lines[lines.Length - 1] = key;
+
+                var linesText = "";
+                foreach (var line in lines)
+                    linesText += line + "\n";
+                
+                File.WriteAllText(GetLanguageFilesPath() + KEYS_FILE_NAME + ".txt", linesText);
+
+                UpdateKeyFile();
+                foreach (var language in GetAvailableLanguages())
+                {
+                    // Add new line.
+                    var languageLines = ReadAllLines(GetLanguageNames()[language], false);
+                    var languageText = "";
+                    foreach (var line in languageLines)
+                        languageText += line + "\n";
+                
+                    File.WriteAllText(GetLanguageFilesPath() + GetLanguageNames()[language] + ".txt", languageText);
+                }
+                
 #if UNITY_EDITOR
                 UnityEditor.AssetDatabase.Refresh();
 #endif
-                UpdateKeyFile();
-                foreach (var language in GetAvailableLanguages())
-                    AddLocalizedValue(key, "", language);
             }
         }
 
@@ -207,7 +224,6 @@ namespace DartCore.Localization
                            (i != keys.Length - 1 ? "\n" : "");
             }
 
-            Debug.Log(newText);
             File.WriteAllText(GetLanguageFilesPath() + KEYS_FILE_NAME + ".txt", newText);
 
 #if UNITY_EDITOR
@@ -223,21 +239,11 @@ namespace DartCore.Localization
             {
                 localizedValue = ConvertUsableStringToSavedString(localizedValue);
                 var lines = ReadAllLines(GetLanguageNames()[language]);
-
                 var index = GetIndexOfKey(key);
-                string endString = "";
-
-                int iterCount = index > lines.Length - 1 ? index + 1 : lines.Length;
-                for (int i = 0; i < iterCount; i++)
-                {
-                    if (i != 0)
-                        endString += "\n";
-
-                    if (index == i)
-                        endString += localizedValue;
-                    else if (lines.Length > i)
-                        endString += lines[i];
-                }
+                
+                var endString = "";
+                for (var i = 0; i < lines.Length; i++)
+                    endString += (i == index ? localizedValue : lines[i]) + "\n";
 
                 File.WriteAllText(GetLanguageFilesPath() + GetLanguageNames()[language] + ".txt", endString);
 #if UNITY_EDITOR
