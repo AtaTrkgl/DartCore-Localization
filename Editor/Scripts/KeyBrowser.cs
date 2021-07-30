@@ -84,14 +84,14 @@ namespace DartCore.Localization.Backend
             Search(search);
 
             // Search Options
-            SetLocalizationStatus((LocalizationStatus) EditorGUILayout.EnumPopup(statusToDisplay));
+            SetLocalizationStatus((LocalizationStatus)EditorGUILayout.EnumPopup(statusToDisplay));
 
             GUILayout.Space(10);
             EditorScriptingUtils.HorizontalLine(3);
 
             var rectPos = EditorGUILayout.GetControlRect();
             var rectBox = new Rect(rectPos.x, rectPos.y, rectPos.width, position.height - 110);
-            var viewRect = new Rect(rectPos.x, rectPos.y, 
+            var viewRect = new Rect(rectPos.x, rectPos.y,
                 currentLanguages.Length * LANGUAGE_NAME_DISPLAYER_WIDTH + ELEMENT_WIDTH, searchedKeys.Count * ELEMENT_HEIGHT);
 
             scrollPos = GUI.BeginScrollView(rectBox, scrollPos, viewRect, false, true);
@@ -102,13 +102,13 @@ namespace DartCore.Localization.Backend
             var contentPos = new Rect(rectBox.x, firstIndex * ELEMENT_HEIGHT + 80f, rectBox.width, ELEMENT_HEIGHT);
 
             Localizator.UpdateKeyFile();
-            
-            for (var i = firstIndex; i < Mathf.Min(firstIndex + viewCount, searchedKeys.Count); i++)
+
+            for (var i = firstIndex; i < Mathf.Max(firstIndex + viewCount, searchedKeys.Count); i++)
             {
                 contentPos.y += ELEMENT_HEIGHT;
 
                 var localizationStatus = Localizator.GetLocalizationStatusOfKey(searchedKeys[i]);
-                
+
                 // Displaying
                 EditorGUILayout.BeginHorizontal();
 
@@ -117,8 +117,8 @@ namespace DartCore.Localization.Backend
                     currentKey == "lng_name" || currentKey == "lng_error" ? keyButtonStyleBold : keyButtonStyle))
                 {
                     KeyEditor.key = currentKey;
-                    
-                    var window = (KeyEditor) GetWindow( typeof(KeyEditor), false,"Key Editor",true);
+
+                    var window = (KeyEditor)GetWindow(typeof(KeyEditor), false, "Key Editor", true);
                     window.Show();
                     FocusWindowIfItsOpen(typeof(KeyEditor));
                 }
@@ -153,7 +153,7 @@ namespace DartCore.Localization.Backend
         private void SetLocalizationStatus(LocalizationStatus status)
         {
             if (status == statusToDisplay) return;
-            
+
             statusToDisplay = status;
             FilterKeys();
         }
@@ -167,27 +167,27 @@ namespace DartCore.Localization.Backend
             else
             {
                 keysWithCorrectLocalizationStatus = new List<string>();
-            
+
                 foreach (var key in keys)
                 {
                     var isLocalized = !Localizator.GetLocalizationStatusOfKey(key).Contains(false);
-                    
+
                     if (statusToDisplay == LocalizationStatus.Localized && isLocalized ||
                         statusToDisplay == LocalizationStatus.NotLocalized && !isLocalized)
                         keysWithCorrectLocalizationStatus.Add(key);
                 }
             }
-            
+
             Search("", ignoreRepetition: true);
         }
-        
+
         public void UpdateArrays()
         {
             Localizator.RefreshAll();
             keys = Localizator.GetKeysArray();
             Array.Sort(keys);
             currentLanguages = Localizator.GetAvailableLanguages();
-            
+
             Search("", ignoreRepetition: true);
             FilterKeys();
         }
@@ -195,7 +195,7 @@ namespace DartCore.Localization.Backend
         private void Search(string search, bool ignoreRepetition = false)
         {
             if (search == lastSearch && !ignoreRepetition) return;
-            
+
             searchedKeys = new List<string>();
 
             if (keysWithCorrectLocalizationStatus == null) FilterKeys();
@@ -205,7 +205,7 @@ namespace DartCore.Localization.Backend
                 {
                     if (key.Trim() == "lng_name" || key.Trim() == "lng_error")
                         searchedKeys.Insert(0, key.Trim());
-                    else 
+                    else
                         searchedKeys.Add(key.Trim());
                 }
             }
