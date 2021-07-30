@@ -146,12 +146,12 @@ namespace DartCore.Localization.Backend
         public void Refresh()
         {
             keysInit = true;
+            
             UpdateArrays();
             Repaint();
-            Localizator.RefreshAll();
         }
 
-        private void SetLocalizationStatus(LocalizationStatus status)
+        public void SetLocalizationStatus(LocalizationStatus status)
         {
             if (status == statusToDisplay) return;
 
