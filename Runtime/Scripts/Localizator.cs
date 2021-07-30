@@ -41,7 +41,8 @@ namespace DartCore.Localization
         private static string GetLanguageFilesPath()
         {
             if (Directory.Exists(LNG_FILES_PATH)) return LNG_FILES_PATH;
-            else{
+            else
+            {
                 var defaultDir = Directory.CreateDirectory(DEFAULT_LNG_FILES_PATH);
                 if (!defaultDir.Exists)
                 {
@@ -49,7 +50,7 @@ namespace DartCore.Localization
                         "Default Localization Directory was not found.");
                 }
 
-                Directory.CreateDirectory(LNG_FILES_PATH);    
+                Directory.CreateDirectory(LNG_FILES_PATH);
 
                 FileInfo[] files = defaultDir.GetFiles();
                 foreach (FileInfo file in files)
@@ -69,7 +70,7 @@ namespace DartCore.Localization
         {
             return GetString(key, currentLanguage, returnErrorString: returnErrorString);
         }
-        
+
         /// <summary>
         /// Returns the localized value of the given key in the specified language.
         /// </summary>
@@ -85,7 +86,7 @@ namespace DartCore.Localization
 
             if (!doesLngFileContainsKey || index == -1)
                 return returnErrorString ? ConvertSavedStringToUsableString(languageArray[1]) : "";
-            
+
             return ConvertSavedStringToUsableString(languageArray[index]);
         }
 
@@ -157,7 +158,7 @@ namespace DartCore.Localization
         {
             if (key == "lng_name" || key == "lng_error")
             {
-                Debug.LogError($"You can not remove the \"{key}\" key");
+                Debug.LogWarning($"You can not remove the \"{key}\" key");
                 return;
             }
 
@@ -172,16 +173,11 @@ namespace DartCore.Localization
                 for (var i = 0; i < keys.Length; i++)
                 {
                     if (i != index)
-                        newText += keys[i] + (i != keys.Length - 1 ? "\n" : "");
-                    else if (i == keys.Length - 1) // If the last key is to be removed than there will be an extra \n
-                        newText = newText.Remove(newText.Length - 1);
+                        newText += keys[i] + "\n";
                 }
-
                 File.WriteAllText(GetLanguageFilesPath() + KEYS_FILE_NAME + ".txt", newText);
-                UpdateKeyFile();
-                
+
                 // VALUE REMOVAL
-                keys = GetKeysArray();
                 foreach (var language in GetLanguageNames().Keys)
                 {
                     newText = "";
@@ -190,8 +186,6 @@ namespace DartCore.Localization
                         if (i != index)
                             newText += GetStringRaw(keys[i], language) + "\n";
                     }
-
-                    newText = newText.Remove(newText.Length - 1);
                     File.WriteAllText(GetLanguageFilesPath() + GetLanguageNames()[language] + ".txt", newText);
                 }
             }
@@ -210,12 +204,12 @@ namespace DartCore.Localization
             {
                 var key = keys[i];
                 newText += (key.Trim() == oldName.Trim() ? newName.Trim() : key.Trim()) +
-                           (i != keys.Length -1 ? "\n" : "");
+                           (i != keys.Length - 1 ? "\n" : "");
             }
-            
+
             Debug.Log(newText);
             File.WriteAllText(GetLanguageFilesPath() + KEYS_FILE_NAME + ".txt", newText);
-            
+
 #if UNITY_EDITOR
             UnityEditor.AssetDatabase.Refresh();
 #endif
@@ -255,7 +249,6 @@ namespace DartCore.Localization
         private static void LoadLanguageFile()
         {
             UpdateLanguageDictionary();
-
             var languages = GetAvailableLanguages();
 
             languageArrays = new Dictionary<SystemLanguage, string[]>();
@@ -333,18 +326,18 @@ namespace DartCore.Localization
                 // The new Language's File.
                 var fileContent = lngName.Trim() + "\n" + lngErrorMessage.Trim();
                 UpdateKeyFile();
-                
+
                 // i starts from 2 as index 0 is lng_name and 1 is lng_error.
                 for (var i = 2; i < keysArray.Length; i++)
                     fileContent += "\n";
                 File.WriteAllText(GetLanguageFilesPath() + fileName + ".txt", fileContent);
-                
+
                 // Language Names File
                 var lines = ReadAllLines(LNG_NAMES_FILE);
                 var fileNameText = "";
                 for (var i = 0; i < lines.Length; i++)
                 {
-                    fileNameText += (i == (int) language ? fileName : lines[i]) + "\n";
+                    fileNameText += (i == (int)language ? fileName : lines[i]) + "\n";
                 }
 
                 fileNameText = fileNameText.Remove(fileNameText.Length - 1);
@@ -365,12 +358,12 @@ namespace DartCore.Localization
             }
 
             var lines = ReadAllLines(LNG_NAMES_FILE);
-            
-            lines[(int) language] = "";
+
+            lines[(int)language] = "";
             var text = "";
             foreach (var line in lines)
                 text += line + "\n";
-            
+
             text = text.Remove(text.Length - 1);
             File.WriteAllText(GetLanguageFilesPath() + LNG_NAMES_FILE + ".txt", text);
 
@@ -382,25 +375,27 @@ namespace DartCore.Localization
         private static void UpdateLanguageDictionary()
         {
             languageNames = new Dictionary<SystemLanguage, string>();
-            var lines = ReadAllLines(LNG_NAMES_FILE);
+            var lines = ReadAllLines(LNG_NAMES_FILE, false);
             for (var i = 0; i < lines.Length; i++)
             {
                 if (!string.IsNullOrWhiteSpace(lines[i]))
-                {
-                    languageNames.Add((SystemLanguage) i, lines[i].Trim());
-                }
+                    languageNames.Add((SystemLanguage)i, lines[i].Trim());
             }
 
-            if (!languageNames.ContainsKey(currentLanguage)) 
+            if (!languageNames.ContainsKey(currentLanguage))
                 currentLanguage = languageNames.Keys.ElementAt(0);
         }
 
-        private static string[] ReadAllLines(string fileName)
+        private static string[] ReadAllLines(string fileName, bool isLastLineEmpty = true)
         {
-            #if UNITY_EDITOR
-            return File.ReadAllText(GetLanguageFilesPath() + fileName + ".txt").Split('\n');
-            #endif
-            return Resources.Load<TextAsset>(fileName).text.Split('\n');
+#if UNITY_EDITOR
+            var lines = File.ReadAllText(GetLanguageFilesPath() + fileName + ".txt");
+#else
+            var lines = Resources.Load<TextAsset>(fileName).text;
+#endif 
+            var linesArray = lines.Split('\n');
+            return isLastLineEmpty ? linesArray.Where((source, index) => index != linesArray.Length - 1).ToArray() :
+                linesArray;
         }
 
         public static SystemLanguage GetCurrentLanguage()
@@ -426,7 +421,7 @@ namespace DartCore.Localization
             var dict = new Dictionary<SystemLanguage, float>();
             foreach (var language in GetAvailableLanguages())
             {
-                
+
                 var lines = ReadAllLines(languageNames[language]);
                 var filledRowCount = 0;
 
@@ -434,7 +429,7 @@ namespace DartCore.Localization
                     if (!string.IsNullOrWhiteSpace(line))
                         filledRowCount++;
 
-                dict.Add(language,(float) Math.Round((decimal)(100f * filledRowCount / lines.Length), 2));
+                dict.Add(language, (float)Math.Round((decimal)(100f * filledRowCount / lines.Length), 2));
             }
 
             return dict;
