@@ -132,10 +132,11 @@ namespace DartCore.Localization.Backend
             keyLastValue = key;
         }
 
-        private void RefreshKeyBrowser()
+        private static void RefreshKeyBrowser()
         {
             var window = (KeyBrowser) GetWindow( typeof(KeyBrowser), false,"Key Browser",false);
             window.Refresh();
+            window.SetLocalizationStatus(LocalizationStatus.All);
         }
     }
 }

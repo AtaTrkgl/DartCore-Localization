@@ -12,8 +12,9 @@ namespace DartCore.Localization.Backend
         [MenuItem("DartCore/Localization/Key Browser")]
         private static void OpenWindow()
         {
-            var window = ScriptableObject.CreateInstance<KeyBrowser>();
+            var window = CreateInstance<KeyBrowser>();
             window.titleContent = new GUIContent("Key Browser");
+            window.minSize = new Vector2(400f, 100f);
             window.Show();
         }
 
@@ -22,7 +23,7 @@ namespace DartCore.Localization.Backend
         public SystemLanguage[] currentLanguages;
         private const int BUTTON_HEIGHT = 30;
         private const int ELEMENT_HEIGHT = 23;
-        private const int ELEMENT_WIDTH = 150;
+        private const int KEY_BUTTON_WIDTH = 200;
         private const int LANGUAGE_NAME_DISPLAYER_WIDTH = 100;
 
         private Vector2 scrollPos;
@@ -51,14 +52,14 @@ namespace DartCore.Localization.Backend
             var keyButtonStyle = new GUIStyle(EditorStyles.miniButton)
             {
                 fixedHeight = ELEMENT_HEIGHT,
-                fixedWidth = ELEMENT_WIDTH,
+                fixedWidth = KEY_BUTTON_WIDTH,
                 fontSize = 12,
-                padding = new RectOffset(10, 10, 5, 5)
+                padding = new RectOffset(10, 10, 5, 5),
             };
             var keyButtonStyleBold = new GUIStyle(GUI.skin.button)
             {
                 fixedHeight = ELEMENT_HEIGHT,
-                fixedWidth = ELEMENT_WIDTH,
+                fixedWidth = KEY_BUTTON_WIDTH,
                 fontSize = 12,
                 fontStyle = FontStyle.BoldAndItalic,
                 padding = new RectOffset(10, 10, 5, 5)
@@ -84,15 +85,15 @@ namespace DartCore.Localization.Backend
             Search(search);
 
             // Search Options
-            SetLocalizationStatus((LocalizationStatus) EditorGUILayout.EnumPopup(statusToDisplay));
+            SetLocalizationStatus((LocalizationStatus)EditorGUILayout.EnumPopup(statusToDisplay));
 
             GUILayout.Space(10);
             EditorScriptingUtils.HorizontalLine(3);
 
             var rectPos = EditorGUILayout.GetControlRect();
             var rectBox = new Rect(rectPos.x, rectPos.y, rectPos.width, position.height - 110);
-            var viewRect = new Rect(rectPos.x, rectPos.y, 
-                currentLanguages.Length * LANGUAGE_NAME_DISPLAYER_WIDTH + ELEMENT_WIDTH, searchedKeys.Count * ELEMENT_HEIGHT);
+            var viewRect = new Rect(rectPos.x, rectPos.y,
+                currentLanguages.Length * LANGUAGE_NAME_DISPLAYER_WIDTH + KEY_BUTTON_WIDTH, searchedKeys.Count * ELEMENT_HEIGHT);
 
             scrollPos = GUI.BeginScrollView(rectBox, scrollPos, viewRect, false, true);
 
@@ -103,12 +104,13 @@ namespace DartCore.Localization.Backend
 
             Localizator.UpdateKeyFile();
             
-            for (var i = firstIndex; i < Mathf.Min(firstIndex + viewCount, searchedKeys.Count); i++)
+            // We add two more so the key at bottom doesn't disappear.
+            for (var i = firstIndex; i < Mathf.Min(firstIndex + viewCount + 2, searchedKeys.Count); i++)
             {
                 contentPos.y += ELEMENT_HEIGHT;
 
                 var localizationStatus = Localizator.GetLocalizationStatusOfKey(searchedKeys[i]);
-                
+
                 // Displaying
                 EditorGUILayout.BeginHorizontal();
 
@@ -117,8 +119,8 @@ namespace DartCore.Localization.Backend
                     currentKey == "lng_name" || currentKey == "lng_error" ? keyButtonStyleBold : keyButtonStyle))
                 {
                     KeyEditor.key = currentKey;
-                    
-                    var window = (KeyEditor) GetWindow( typeof(KeyEditor), false,"Key Editor",true);
+
+                    var window = (KeyEditor)GetWindow(typeof(KeyEditor), false, "Key Editor", true);
                     window.Show();
                     FocusWindowIfItsOpen(typeof(KeyEditor));
                 }
@@ -127,33 +129,32 @@ namespace DartCore.Localization.Backend
                 for (var j = 0; j < currentLanguages.Length; j++)
                 {
                     var language = currentLanguages[j];
-                    var xOffset = ELEMENT_WIDTH + j * LANGUAGE_NAME_DISPLAYER_WIDTH;
+                    var xOffset = KEY_BUTTON_WIDTH + j * LANGUAGE_NAME_DISPLAYER_WIDTH;
                     var offsetedContentPos = new Rect(contentPos.x + xOffset, contentPos.y, contentPos.width, ELEMENT_HEIGHT);
                     GUI.Label(offsetedContentPos,
                         localizationStatus[j]
-                            ? $"<color=green>{language.ToString()}</color>"
-                            : $"<color=red>{language.ToString()}</color>",
+                            ? $"<color=green>{language}</color>"
+                            : $"<color=red>{language}</color>",
                         languageDisplayerStyle);
                 }
 
                 EditorGUILayout.EndHorizontal();
             }
-
             GUI.EndScrollView();
         }
 
         public void Refresh()
         {
             keysInit = true;
+            
             UpdateArrays();
             Repaint();
-            Localizator.RefreshAll();
         }
 
-        private void SetLocalizationStatus(LocalizationStatus status)
+        public void SetLocalizationStatus(LocalizationStatus status)
         {
             if (status == statusToDisplay) return;
-            
+
             statusToDisplay = status;
             FilterKeys();
         }
@@ -167,27 +168,27 @@ namespace DartCore.Localization.Backend
             else
             {
                 keysWithCorrectLocalizationStatus = new List<string>();
-            
+
                 foreach (var key in keys)
                 {
                     var isLocalized = !Localizator.GetLocalizationStatusOfKey(key).Contains(false);
-                    
+
                     if (statusToDisplay == LocalizationStatus.Localized && isLocalized ||
                         statusToDisplay == LocalizationStatus.NotLocalized && !isLocalized)
                         keysWithCorrectLocalizationStatus.Add(key);
                 }
             }
-            
+
             Search("", ignoreRepetition: true);
         }
-        
+
         public void UpdateArrays()
         {
             Localizator.RefreshAll();
             keys = Localizator.GetKeysArray();
             Array.Sort(keys);
             currentLanguages = Localizator.GetAvailableLanguages();
-            
+
             Search("", ignoreRepetition: true);
             FilterKeys();
         }
@@ -195,7 +196,7 @@ namespace DartCore.Localization.Backend
         private void Search(string search, bool ignoreRepetition = false)
         {
             if (search == lastSearch && !ignoreRepetition) return;
-            
+
             searchedKeys = new List<string>();
 
             if (keysWithCorrectLocalizationStatus == null) FilterKeys();
@@ -205,7 +206,7 @@ namespace DartCore.Localization.Backend
                 {
                     if (key.Trim() == "lng_name" || key.Trim() == "lng_error")
                         searchedKeys.Insert(0, key.Trim());
-                    else 
+                    else
                         searchedKeys.Add(key.Trim());
                 }
             }
