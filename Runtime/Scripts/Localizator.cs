@@ -220,8 +220,7 @@ namespace DartCore.Localization
             for (int i = 0; i < keys.Length; i++)
             {
                 var key = keys[i];
-                newText += (key.Trim() == oldName.Trim() ? newName.Trim() : key.Trim()) +
-                           (i != keys.Length - 1 ? "\n" : "");
+                newText += (key.Trim() == oldName.Trim() ? newName.Trim() : key.Trim()) + "\n";
             }
 
             File.WriteAllText(GetLanguageFilesPath() + KEYS_FILE_NAME + ".txt", newText);
