@@ -329,7 +329,7 @@ namespace DartCore.Localization
             if (!GetLanguageNames().ContainsKey(language) && !GetLanguageNames().ContainsValue(fileName))
             {
                 // The new Language's File.
-                var fileContent = lngName.Trim() + "\n" + lngErrorMessage.Trim();
+                var fileContent = $"{lngName.Trim()}\n{lngErrorMessage.Trim()}\n";
                 UpdateKeyFile();
 
                 // i starts from 2 as index 0 is lng_name and 1 is lng_error.
@@ -340,10 +340,8 @@ namespace DartCore.Localization
                 // Language Names File
                 var lines = ReadAllLines(LNG_NAMES_FILE);
                 var fileNameText = "";
-                for (var i = 0; i < lines.Length; i++)
-                {
-                    fileNameText += (i == (int)language ? fileName : lines[i]) + "\n";
-                }
+                for (var i = 0; i < Enum.GetNames(typeof(SystemLanguage)).Length; i++)
+                    fileNameText += $"{(i == (int)language ? fileName : i < lines.Length ? lines[i] : "")}\n";
 
                 fileNameText = fileNameText.Remove(fileNameText.Length - 1);
                 File.WriteAllText(GetLanguageFilesPath() + LNG_NAMES_FILE + ".txt", fileNameText);

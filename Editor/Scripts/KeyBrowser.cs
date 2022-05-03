@@ -56,14 +56,6 @@ namespace DartCore.Localization.Backend
                 fontSize = 12,
                 padding = new RectOffset(10, 10, 5, 5),
             };
-            var keyButtonStyleBold = new GUIStyle(GUI.skin.button)
-            {
-                fixedHeight = ELEMENT_HEIGHT,
-                fixedWidth = KEY_BUTTON_WIDTH,
-                fontSize = 12,
-                fontStyle = FontStyle.BoldAndItalic,
-                padding = new RectOffset(10, 10, 5, 5)
-            };
 
             if (GUILayout.Button("Refresh", GUILayout.Height(BUTTON_HEIGHT)) || !keysInit)
             {
@@ -115,8 +107,24 @@ namespace DartCore.Localization.Backend
                 EditorGUILayout.BeginHorizontal();
 
                 var currentKey = searchedKeys[i];
-                if (GUI.Button(contentPos, currentKey,
-                    currentKey == "lng_name" || currentKey == "lng_error" ? keyButtonStyleBold : keyButtonStyle))
+                
+                // Key-Dependent Style Tweaks
+                var currentKeyButtonStyle = new GUIStyle(keyButtonStyle);
+                
+                if (currentKey == "lng_name" || currentKey == "lng_error")
+                    currentKeyButtonStyle.fontStyle = FontStyle.BoldAndItalic;
+                if (currentKey == KeyEditor.key)
+                {
+                    var c = EditorGUIUtility.isProSkin ? Color.cyan : Color.blue;
+
+                    currentKeyButtonStyle.normal.textColor = c;
+                    currentKeyButtonStyle.active.textColor = c;
+                    currentKeyButtonStyle.hover.textColor = c;
+
+                    currentKeyButtonStyle.fontStyle = FontStyle.Bold;
+                }
+                
+                if (GUI.Button(contentPos, currentKey, currentKeyButtonStyle))
                 {
                     KeyEditor.key = currentKey;
 
