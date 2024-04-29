@@ -4,6 +4,8 @@
 [![stargazers](https://img.shields.io/github/stars/AtaTrkgl/DartCore-Localization?color=yellow)](https://github.com/AtaTrkgl/DartCore-Localization/stargazers)
 [![release](https://img.shields.io/github/v/release/AtaTrkgl/DartCore-Localization?color=dark%20green)](https://github.com/AtaTrkgl/DartCore-Localization/releases)
 
+> ⚠️ DartCore packages are now mainted under _Espale Studios_ over at [espale-studios/espale-unity-packages](https://github.com/espale-studios/espale-unity-packages) as a _monorepo_.
+
 DartCore Localization is a localization solution for Unity.
 
 [Here](https://github.com/AtaTrkgl/DartCore-Localization/wiki) is the link to the documentation.
